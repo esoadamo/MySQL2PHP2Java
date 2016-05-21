@@ -58,15 +58,15 @@ Respond codes
  
 API
 -------
-Accessing to your PHP script is made by http GET on your PHP script's URL (e.g. http://example.com/mysql.php) and every time you will execute PHP script, first returned character will be respond code.
+Accessing to your PHP script is made by http POST on your PHP script's URL (e.g. http://example.com/mysql.php) and every time you will execute PHP script, first returned character will be respond code.
 
 **Testing connection**
 For testing connection you do not have to input password, because it will not show any sensitive data.
 For testing is used parameter *testing*
 
-    GET http://example.com/mysql.php?testing=testPHP
+    wget --post-data="testing=testPHP" http://example.com/mysql.php
     
-    GET http://example.com/mysql.php?testing=testMySQL
+    wget --post-data="testing=testMySQL" http://example.com/mysql.php
 First example will return status 4 if was successful, second will return status 5. Any other status means fail.
 
 **Executing SQL command**
@@ -75,15 +75,15 @@ Selecting name of users in database
 
  1. if you have no password specified:
 
-    GET "http://example.com/mysql.php?sql=SELECT name FROM users"
+    wget --post-data="sql=SELECT name FROM users" "http://example.com/mysql.php"
 
  2. if  you have password specified you will just add parameter *p* with you PHP script's password:
 
-    GET "http://example.com/mysql.php?sql=SELECT name FROM users&p=yourPassword"
+    wget --post-data="sql=SELECT name FROM users&p=yourPassword" "http://example.com/mysql.php"
     
 Updating tables in your database is pretty the same:
 
-    GET "http://example.com/mysql.php?sql=UPDATE users SET name = Admin WHERE id = 1"
+    wget --post-data="sql=UPDATE users SET name = Admin WHERE id = 1" "http://example.com/mysql.php"
     
 
 **Value modification**
@@ -99,16 +99,16 @@ And here comes parameter *getRaw* and *tcollumn*. If *getRaw* is set to *t*, scr
 
 Let say we want to get user's photo and name:
 
-     GET "http://example.com/mysql.php?sql=SELECT name, photo FROM users WHERE id = 1&p=yourPassword"
+     wget --post-data="sql=SELECT name, photo FROM users WHERE id = 1&p=yourPassword" "http://example.com/mysql.php"
 
 Aftter parsing you will find that there are two columns:
 
  1. name with value *Admin*
  2. photo with value *blob::users::photo*
 
-To get photo we need to send second command, which will return unchanged bytes of photo:
+To get the photo we need to send second command, which will return unchanged bytes of photo:
 
-    GET "http://example.com/mysql.php?sql=SELECT photo FROM users WHERE id = 1&p=yourPassword&getRaw=t&tcollumn=photo"
+    wget --post-data="sql=SELECT photo FROM users WHERE id = 1&p=yourPassword&getRaw=t&tcollumn=photo" "http://example.com/mysql.php"
 
 Java part
 =======
@@ -130,4 +130,5 @@ then to print all names of users you should use
 Do you like my work?
 =======
 If sou, why not consider [donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QM6PJFRG3A5QU) to help me make more cool and/or useful stuff
+
 
