@@ -12,7 +12,7 @@ $server = "";
 $acess_pass = "";
 
 /*
-How to acess: www.yourserver.com/this.php?p=acess_pass&sql=your_sql_command
+How to acess: http POST www.yourserver.com/this.php, as parameters enter p=acess_pass&sql=your_sql_command
 
 If you want a binary data only, then you shouhld acces www.yourserver.com/this.php?p=acess_pass&getRaw=t&tcollum=name_of_collum_with_blob&sql=your_sql_command
 Return codes:
@@ -23,14 +23,8 @@ Return codes:
 5 - Testing connection to MySQL was successful
 */
 
-
-//Parse parameters from url
-$url =  "//{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-$query_str = parse_url($url, PHP_URL_QUERY);
-parse_str($query_str, $query_params);
-
 //Check if client just want to test connection to this script
-if( isset($query_params["testing"]) &&  ($query_params["testing"] == "testPHP" )) {
+if( isset( $_POST["testing"]) &&  ( $_POST["testing"] == "testPHP" )) {
 
 	print("4: Connection to PHP script works. Good work m8s!". "<BR>");
 	exit (4);
@@ -38,7 +32,7 @@ if( isset($query_params["testing"]) &&  ($query_params["testing"] == "testPHP" )
 }
 
 //Check if client just want to test connection to the database
-if( isset($query_params["testing"]) &&  ($query_params["testing"] == "testMySQL" )) {
+if( isset( $_POST["testing"]) &&  ( $_POST["testing"] == "testMySQL" )) {
 
 	$connection = mysqli_connect($server, $user_name, $password, $database);
 
@@ -53,7 +47,7 @@ if( isset($query_params["testing"]) &&  ($query_params["testing"] == "testMySQL"
 }
 
 //Check if we have command parameter
-if( !isset($query_params["sql"]) ||  ($query_params["sql"] == "" )) {
+if( !isset( $_POST["sql"]) ||  ( $_POST["sql"] == "" )) {
 
 	print("2: Welcome to PHP <-> MySQl server operator.". "<BR>");
 	print("This webpage not acessible for web browsers, please use application with in-build support.". "<BR>");
@@ -62,7 +56,7 @@ if( !isset($query_params["sql"]) ||  ($query_params["sql"] == "" )) {
 }
 
 //Check password
-if( (!isset($query_params["p"]) && ($acess_pass != "")) ||  ($query_params["p"] !=  $acess_pass)) {
+if( (!isset( $_POST["p"]) && ($acess_pass != "")) ||  ( $_POST["p"] !=  $acess_pass)) {
 
 	print("3: Wrong password". "<BR>");
 	exit (3);
@@ -74,11 +68,11 @@ $connection = mysqli_connect($server, $user_name, $password, $database);
 	mysqli_query($connection, "SET character_set_results = 'utf8', character_set_client = 'utf8', character_set_connection = 'utf8', character_set_database = 'utf8', character_set_server = 'utf8'");
 
 //Client wants to get only raw data
-if( isset($query_params["getRaw"]) &&  ($query_params["getRaw"] == "t" )) {
+if( isset( $_POST["getRaw"]) &&  ( $_POST["getRaw"] == "t" )) {
 
-	$tCollum = $query_params["tcollumn"];
+	$tCollum =  $_POST["tcollumn"];
 
-	$SQL = $query_params["sql"];
+	$SQL =  $_POST["sql"];
 
 	$result = mysqli_query($connection, $SQL);
 
@@ -93,10 +87,10 @@ if( isset($query_params["getRaw"]) &&  ($query_params["getRaw"] == "t" )) {
 	exit(6);
 }
 
-	$SQL = $query_params["sql"];
+	$SQL =  $_POST["sql"];
 	$result = mysqli_query($connection, $SQL);
 
-	print "0: Results for " . $query_params["sql"] . "<BR>";
+	print "0: Results for " .  $_POST["sql"] . "<BR>";
 
 	/*Find blob columns */
 	$blob_columns = array(); //Index of columns with blobs
