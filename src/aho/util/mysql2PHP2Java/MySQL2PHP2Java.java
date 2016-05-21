@@ -5,6 +5,7 @@ package aho.util.mysql2PHP2Java;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,8 +13,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import aho.util.mysql2PHP2Java.exceptions.DatabaseWasNotFoundException;
 import aho.util.mysql2PHP2Java.exceptions.InvalidPasswordException;
 import aho.util.mysql2PHP2Java.exceptions.InvalidStateException;
@@ -76,10 +78,10 @@ public class MySQL2PHP2Java {
      * @throws NoCommandSpecifiedException
      * @throws IOException
      */
-    public MySQLRespond executeSQL(String sqlcommand) throws DatabaseWasNotFoundException,
-	    InvalidPasswordException, InvalidStateException, NoCommandSpecifiedException, IOException {
-	String[] parameters = { "sql=" + URLEncoder.encode(sqlcommand, "UTF-8") };
-	String whereString = null; //Part of SQL command after word WHERE
+    public MySQLRespond executeSQL(String sqlcommand)
+	    throws DatabaseWasNotFoundException, InvalidPasswordException, InvalidStateException, NoCommandSpecifiedException, IOException {
+	String[] parameters = { "sql=" + sqlcommand + "" };
+	String whereString = null; // Part of SQL command after word WHERE
 	if (sqlcommand.toUpperCase().contains("WHERE")) {
 	    int whereIdex = sqlcommand.toUpperCase().indexOf(" WHERE ");
 	    whereString = sqlcommand.substring(whereIdex + 7);
@@ -174,11 +176,24 @@ public class MySQL2PHP2Java {
 
 	StringBuilder response = new StringBuilder();
 
-	String url = this.url + "?" + parameters;
+	byte[] postData = parameters.getBytes(StandardCharsets.UTF_8);
+	int postDataLength = postData.length;
+
 	URL obj = new URL(url);
 	HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-	con.setRequestMethod("GET");
+	con.setDoOutput(true);
+	con.setInstanceFollowRedirects(false);
+
+	con.setRequestMethod("POST");
+
+	con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+	con.setRequestProperty("charset", "utf-8");
+	con.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+	con.setUseCaches(false);
+
+	DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+	wr.write(postData);
 
 	BufferedReader in = null;
 	try {
@@ -211,19 +226,32 @@ public class MySQL2PHP2Java {
      * @return byte array downloaded from respond of server
      * @throws IOException
      */
-    public ByteArrayOutputStream getRawData(final String sqlcommand, final String targetCollum)
-	    throws IOException {
+    public ByteArrayOutputStream getRawData(final String sqlcommand, final String targetCollum) throws IOException {
 	final int buffSize = 1024; // How large is the buffered stream byte array
 
-	String parameters = "p=" + URLEncoder.encode(password, "UTF-8") + "&getRaw=t&sql=" + URLEncoder.encode(sqlcommand, "UTF-8")
-		+ "&tcollumn=" + URLEncoder.encode(targetCollum, "UTF-8");
+	String parameters = "p=" + password + "&getRaw=t&sql=" + URLEncoder.encode(sqlcommand, "UTF-8") + "&tcollumn=" + targetCollum;
 	
-	String url = this.url + "?" + parameters;
-	
+	byte[] postData = parameters.getBytes(StandardCharsets.UTF_8);
+	int postDataLength = postData.length;
+
 	URL obj = new URL(url);
 	byte[] buf = new byte[buffSize];
 
-	URLConnection connection = obj.openConnection();
+	HttpURLConnection connection = (HttpURLConnection)obj.openConnection();
+	
+	connection.setDoOutput(true);
+	connection.setInstanceFollowRedirects(false);
+
+	connection.setRequestMethod("POST");
+
+	connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+	connection.setRequestProperty("charset", "utf-8");
+	connection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
+	connection.setUseCaches(false);
+
+	DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+	wr.write(postData);
+	
 	InputStream inS = connection.getInputStream();
 
 	int currLength = 0;

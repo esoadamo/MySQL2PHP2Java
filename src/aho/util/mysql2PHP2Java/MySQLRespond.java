@@ -2,7 +2,6 @@ package aho.util.mysql2PHP2Java;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,9 +36,8 @@ public class MySQLRespond {
      * @throws NoCommandSpecifiedException
      * @throws IOException
      */
-    public MySQLRespond(final String respond, final MySQL2PHP2Java calledBy, final String whereString)
-	    throws DatabaseWasNotFoundException, InvalidPasswordException, InvalidStateException,
-	    NoCommandSpecifiedException, IOException {
+    public MySQLRespond(String respond, final MySQL2PHP2Java calledBy, final String whereString)
+	    throws DatabaseWasNotFoundException, InvalidPasswordException, InvalidStateException, NoCommandSpecifiedException, IOException {
 	int respondCode = MySQL2PHP2Java.getReturnCode(respond);
 	switch (respondCode) {
 	case MySQL2PHP2Java.STATE_OK:
@@ -131,15 +129,13 @@ public class MySQLRespond {
 		    for (int i1 = 0; i1 < columns.size(); i1++) {
 			if ((values.get(i1)[i] == null) || (values.get(i1)[i].startsWith("@rawData")))
 			    continue;
-			whereParameters.append("`" + columns.get(i1) + "` = \"" + values.get(i1)[i]
-				+ "\" AND ");
+			whereParameters.append("`" + columns.get(i1) + "` = \"" + values.get(i1)[i] + "\" AND ");
 		    }
-		    if(whereString != null)
+		    if (whereString != null)
 			whereParameters.append(whereString);
-		    else //Remove last AND
+		    else // Remove last AND
 			whereParameters.setLength(whereParameters.length() - 4);
-		    rawData.add(calledBy.getRawData("SELECT `" + blobData[2] + "` FROM `" + blobData[1]
-			    + "` WHERE " + whereParameters.toString(), blobData[2]));
+		    rawData.add(calledBy.getRawData("SELECT `" + blobData[2] + "` FROM `" + blobData[1] + "` WHERE " + whereParameters.toString(), blobData[2]));
 		    parts[1] = "@rawData:" + (rawData.size() - 1);
 		} else {
 
@@ -328,8 +324,7 @@ public class MySQLRespond {
      * @return value or null if index is greater than max index or this column is not in raw data list
      * @throws ColumnDoesNotExistException
      */
-    public ByteArrayOutputStream getRawData(String columnName, int index)
-	    throws ColumnDoesNotExistException {
+    public ByteArrayOutputStream getRawData(String columnName, int index) throws ColumnDoesNotExistException {
 	/*
 	 * Raw data link starts with prefix "@rawData:NUMBER_IN_rawData_LIST"
 	 */
@@ -364,8 +359,7 @@ public class MySQLRespond {
 	    }
 
 	if (!columnExist)
-	    throw new ColumnDoesNotExistException("column '" + columnName
-		    + "' does not exist in this respond");
+	    throw new ColumnDoesNotExistException("column '" + columnName + "' does not exist in this respond");
 	return values.get(columnIndex)[index];
     }
 
@@ -395,17 +389,11 @@ public class MySQLRespond {
 	    }
 
 	if (!columnExist)
-	    throw new ColumnDoesNotExistException("column '" + columnName
-		    + "' does not exist in this respond");
-	
+	    throw new ColumnDoesNotExistException("column '" + columnName + "' does not exist in this respond");
+
 	String returnValue = values.get(columnIndex)[index];
-	if(returnValue.startsWith("@rawData"))
-//	    try {
-		returnValue = getRawData(columnName, index).toString();
-//		returnValue = getRawData(columnName, index).toString("UTF-8");
-//	    } catch (UnsupportedEncodingException e) {
-//		returnValue = getRawData(columnName, index).toString();
-//	    }
+	if (returnValue.startsWith("@rawData"))
+	    returnValue = getRawData(columnName, index).toString();
 	return returnValue;
     }
 
@@ -436,5 +424,19 @@ public class MySQLRespond {
      */
     public Double getDouble(String columnName) throws NumberFormatException, ColumnDoesNotExistException {
 	return Double.parseDouble(getString(columnName));
+    }
+
+    /**
+     * Finds value in column by its index. As index is used locally saved index changed by this.next() and
+     * this.prev() and this.setIndex()
+     * 
+     * @param columnName
+     *            name of column to find in
+     * @return found value or null if index is greater than max index
+     * @throws NumberFormatException
+     * @throws ColumnDoesNotExistException
+     */
+    public Long getLong(String columnName) throws NumberFormatException, ColumnDoesNotExistException {
+	return Long.parseLong(getString(columnName));
     }
 }
